@@ -1,0 +1,29 @@
+{
+  "name": "oakbarrel",
+  "version": "0.0.1",
+  "description": "Automatic barrel mainteiner",
+  "main": "index.js",
+  "repository": "https://github.com/pedroraft/oakbarrel.git",
+  "author": "pedroraft",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pedroraft/oakbarrel/issues"
+  },
+  "homepage": "https://github.com/pedroraft/oakbarrel#readme",
+  "bin": {
+    "oakbarrel": "bin/oakbarrel"
+  },
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "dependencies": {
+    "fast-glob": "^3.2.2",
+    "nsfw": "^1.2.7",
+    "ts-morph": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^13.9.1",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
+  }
+}
