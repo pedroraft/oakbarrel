@@ -8,7 +8,7 @@ var wantsCompiled = process.argv.indexOf('--compiled-build') >= 0;
 
 console.log('starting oakbarrel...');
 if (wantsCompiled || !devMode) {
-  console.log('oakbarrel: production');
+  // console.log('oakbarrel: production');
   // this runs from the compiled javascript source
   require(`${__dirname}/../build/cli`).run(process.argv);
 } else {
