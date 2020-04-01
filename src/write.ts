@@ -5,25 +5,40 @@ import { ROOT_FOLDER } from './config';
 
 export const writeIndex = async (indexPath: string, files?: string[]) => {
   if (!files?.length) return;
+  const filesWithOptions = files
+    .map(f => readFileOptions(f))
+    .filter(o => !o.doNotExport);
   const indexDir = path.dirname(indexPath);
-  const indexExports = files
-    .filter(f => fileIsIndex(f))
-    .map(f => getIndexExportLine(indexDir, f))
+  const fowardExports = filesWithOptions
+    .filter(
+      f =>
+        fileIsIndex(f.path) ||
+        (f.exportAll && !f.exportDefault && !f.exportNamed),
+    )
+    .map(f => getIndexExportLine(indexDir, f.path))
     .join('\n');
-  const defaultExports = files
-    .filter(f => !fileIsIndex(f) && fileHasDefault(f))
-    .map(f => getDefaultExportLine(indexDir, f))
+  const defaultExports = filesWithOptions
+    .filter(
+      f =>
+        (!fileIsIndex(f.path) && f.defaultExport) ||
+        (!f.exportAll && f.exportDefault && !f.exportNamed),
+    )
+    .map(f => getDefaultExportLine(indexDir, f.path))
     .join('\n');
-  const namedFiles = files.filter(f => !fileIsIndex(f) && !fileHasDefault(f));
+  const namedFiles = filesWithOptions.filter(
+    f =>
+      (!fileIsIndex(f.path) && !f.defaultExport) ||
+      (!f.exportAll && !f.exportDefault && f.exportNamed),
+  );
   const namedImports = namedFiles
-    .map(f => getNamedImportLine(path.dirname(indexPath), f))
+    .map(f => getNamedImportLine(path.dirname(indexPath), f.path))
     .join('\n');
   const namedExports =
     namedFiles?.length > 0
       ? namedFiles.reduce((collection, current, index) => {
           let text = '';
           if (index === 0) text += 'export {';
-          text += `${collection}\n  ${getCamelizedName(current)},`;
+          text += `${collection}\n  ${getCamelizedName(current.path)},`;
           if (index === namedFiles.length - 1) text += `\n};`;
           return text;
         }, '')
@@ -36,7 +51,7 @@ export const writeIndex = async (indexPath: string, files?: string[]) => {
     '',
     defaultExports,
     '',
-    indexExports,
+    fowardExports,
   ].join('\n');
   const prettierConfigPath = path.join(ROOT_FOLDER, '.prettierrc.json');
   const prettierConfig = await fs
@@ -76,14 +91,18 @@ const getRelative = (indexDir: string, filePath: string) =>
 const getCamelizedName = (filePath: string) =>
   camelize(getNameWithoutExt(filePath));
 
-const fileHasDefault = (filePath: string) => {
-  try {
-    const file = syncFs.readFileSync(filePath, { encoding: 'utf8' });
+const readFileOptions = (filePath: string) => {
+  const file = syncFs.readFileSync(filePath, { encoding: 'utf8' });
+  return {
     // using regex because ts-morph was to slow
-    return /export default/g.test(file);
-  } catch (e) {
-    return false;
-  }
+    defaultExport: /export default/g.test(file),
+    doNotExport: /oakbarrel-ignore/g.test(file),
+    exportAll: /oakbarrel-all/g.test(file),
+    exportNamed: /oakbarrel-named/g.test(file),
+    exportDefault: /oakbarrel-default/g.test(file),
+    hasExport: /export/g.test(file),
+    path: filePath,
+  };
 };
 
 const fileIsIndex = (filePath: string) =>
