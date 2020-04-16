@@ -94,7 +94,7 @@ const getExportType = (fileContent, filePath) => {
     if ((/export default/g.test(fileContent) && !isNameSpace && !isForward) ||
         /oakbarrel-default/g.test(fileContent))
         return 'DEFAULT';
-    if ((isNameSpace || isReact) && !isForward)
+    if ((isNameSpace || isReact(fileContent)) && !isForward)
         return 'NAMESPACE';
     return 'FORWARD';
 };
