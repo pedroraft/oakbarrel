@@ -1,6 +1,6 @@
 {
   "name": "@pedroraft/oakbarrel",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Automatic barrel mainteiner",
   "main": "bin/oakbarrel.js",
   "repository": "https://github.com/pedroraft/oakbarrel.git",
