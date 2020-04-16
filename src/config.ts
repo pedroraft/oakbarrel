@@ -24,3 +24,5 @@ export const setupConfig = async () => {
 
 export const ROOT_FOLDER = process.cwd();
 export const CONCURRENCY = os.cpus().length;
+
+export const TEXT_ON_TOP = `// This is a auto-generated file, do not edit it`;

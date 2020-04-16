@@ -19,44 +19,31 @@ exports.writeIndex = async (indexPath, files) => {
         return;
     const filesWithOptions = files
         .map(f => readFileOptions(f))
-        .filter(o => !o.doNotExport);
+        .filter(o => o.exportType !== 'IGNORE');
     const indexDir = path_1.default.dirname(indexPath);
     const fowardExports = filesWithOptions
-        .filter(f => fileIsIndex(f.path) ||
-        (f.exportAll && !f.exportDefault && !f.exportNamed))
+        .filter(f => f.exportType === 'FORWARD')
         .map(f => getIndexExportLine(indexDir, f.path))
         .join('\n');
     const defaultExports = filesWithOptions
-        .filter(f => (!fileIsIndex(f.path) && f.defaultExport) ||
-        (!f.exportAll && f.exportDefault && !f.exportNamed))
-        .map(f => getDefaultExportLine(indexDir, f.path))
+        .filter(f => f.exportType === 'DEFAULT')
+        .map(f => getDefaultExportLine(indexDir, f.path, f.isReact))
         .join('\n');
-    const namedFiles = filesWithOptions.filter(f => (!fileIsIndex(f.path) && !f.defaultExport) ||
-        (!f.exportAll && !f.exportDefault && f.exportNamed));
-    const namedImports = namedFiles
-        .map(f => getNamedImportLine(path_1.default.dirname(indexPath), f.path))
+    const nameSpaceFiles = filesWithOptions.filter(f => f.exportType === 'NAMESPACE');
+    const nameSpaceImports = nameSpaceFiles
+        .map(f => getNamedImportLine(path_1.default.dirname(indexPath), f.path, f.isReact))
         .join('\n');
-    const namedExports = (namedFiles === null || namedFiles === void 0 ? void 0 : namedFiles.length) > 0
-        ? namedFiles.reduce((collection, current, index) => {
-            let text = '';
-            if (index === 0)
-                text += 'export {';
-            text += `${collection}\n  ${getCamelizedName(current.path)},`;
-            if (index === namedFiles.length - 1)
-                text += `\n};`;
-            return text;
-        }, '')
-        : '';
+    const nameSpaceExports = getNamedExports(nameSpaceFiles);
     const content = [
-        `// This is a auto-generated file, do not edit it`,
-        namedImports,
-        '',
-        namedExports,
-        '',
+        config_1.TEXT_ON_TOP,
+        nameSpaceImports,
+        nameSpaceExports,
         defaultExports,
-        '',
         fowardExports,
     ].join('\n');
+    return fs_1.promises.writeFile(indexPath, await prettierFormat(content));
+};
+const prettierFormat = async (content) => {
     const prettierConfigPath = path_1.default.join(config_1.ROOT_FOLDER, '.prettierrc.json');
     const prettierConfig = await fs_1.promises
         .access(prettierConfigPath)
@@ -65,31 +52,55 @@ exports.writeIndex = async (indexPath, files) => {
     const options = prettierConfig
         ? await prettier_1.default.resolveConfig(await prettierConfig)
         : {};
-    const formatted = prettier_1.default.format(content, Object.assign(Object.assign({}, options), { parser: 'babel' }));
-    return fs_1.promises.writeFile(indexPath, formatted);
+    return prettier_1.default.format(content, Object.assign(Object.assign({}, options), { parser: 'babel' }));
 };
 const getIndexExportLine = (indexDir, filePath) => `export * from './${getRelative(indexDir, filePath)}';`;
-const getDefaultExportLine = (indexDir, filePath) => `export { default as ${getCamelizedName(filePath)} } from './${getRelative(indexDir, filePath)}';`;
-const getNamedImportLine = (indexDir, filePath) => `import * as ${getCamelizedName(filePath)} from './${getRelative(indexDir, filePath)}';`;
+const getDefaultExportLine = (indexDir, filePath, pascal) => `export { default as ${getNameSpace(filePath, pascal)} } from './${getRelative(indexDir, filePath)}';`;
+const getNamedImportLine = (indexDir, filePath, pascal) => `import * as ${getNameSpace(filePath, pascal)} from './${getRelative(indexDir, filePath)}';`;
+const getNamedExports = (files) => (files === null || files === void 0 ? void 0 : files.length) > 0
+    ? files.reduce((collection, current, index) => {
+        let text = '';
+        if (index === 0)
+            text += 'export {';
+        text += `${collection}\n  ${getNameSpace(current.path, current.isReact)},`;
+        if (index === files.length - 1)
+            text += `\n};`;
+        return text;
+    }, '')
+    : '';
 const getRelative = (indexDir, filePath) => path_1.default
     .relative(indexDir, filePath)
     .replace('.tsx', '')
     .replace('.ts', '');
-const getCamelizedName = (filePath) => camelize(getNameWithoutExt(filePath));
+const getNameSpace = (filePath, pascal) => pascal
+    ? pascalize(getNameWithoutExt(filePath))
+    : camelize(getNameWithoutExt(filePath));
+const isReact = (fileContent) => /import React/g.test(fileContent);
 const readFileOptions = (filePath) => {
-    const file = fs_1.default.readFileSync(filePath, { encoding: 'utf8' });
+    const fileContent = fs_1.default.readFileSync(filePath, { encoding: 'utf8' });
     return {
-        defaultExport: /export default/g.test(file),
-        doNotExport: /oakbarrel-ignore/g.test(file),
-        exportAll: /oakbarrel-all/g.test(file),
-        exportNamed: /oakbarrel-named/g.test(file),
-        exportDefault: /oakbarrel-default/g.test(file),
-        hasExport: /export/g.test(file),
+        exportType: getExportType(fileContent, filePath),
+        isReact: isReact(fileContent),
         path: filePath,
     };
+};
+const getExportType = (fileContent, filePath) => {
+    if (!/export/g.test(fileContent) || /oakbarrel-ignore/g.test(fileContent))
+        return 'IGNORE';
+    if (fileIsIndex(filePath) && !/oakbarrel/g.test(fileContent))
+        return 'FORWARD';
+    const isNameSpace = /oakbarrel-namespace/g.test(fileContent);
+    const isForward = /oakbarrel-forward/g.test(fileContent);
+    if ((/export default/g.test(fileContent) && !isNameSpace && !isForward) ||
+        /oakbarrel-default/g.test(fileContent))
+        return 'DEFAULT';
+    if ((isNameSpace || isReact) && !isForward)
+        return 'NAMESPACE';
+    return 'FORWARD';
 };
 const fileIsIndex = (filePath) => path_1.default.basename(filePath) === 'index.ts';
 const getNameWithoutExt = (filePath) => path_1.default.basename(filePath).split('.')[0];
 const camelize = (str) => str
-    .replace(/-/g, ' ')
-    .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, match => +match === 0 ? '' : match.toUpperCase());
+    .replace(/[\W_]$/, '')
+    .replace(/[\W_]([a-zA-Z0-9])/g, (_, x) => x.toUpperCase());
+const pascalize = (str) => str.substr(0, 1).toUpperCase() + camelize(str.substr(1));

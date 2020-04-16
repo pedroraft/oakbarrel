@@ -22,3 +22,4 @@ exports.setupConfig = async () => {
 };
 exports.ROOT_FOLDER = process.cwd();
 exports.CONCURRENCY = os_1.default.cpus().length;
+exports.TEXT_ON_TOP = `// This is a auto-generated file, do not edit it`;
