@@ -1,4 +1,4 @@
-# OakBarrel
+# OakBarrel [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
 Tool for automatic typescript (maybe es6 soon) barrel (export index) updating with file change watcher. Works with monorepos.
 
