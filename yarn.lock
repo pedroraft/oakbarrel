@@ -28,11 +28,6 @@
   resolved "https://registry.yarnpkg.com/@types/async/-/async-3.0.8.tgz#8c183f149d8cc91f944d58e5594d2a614ceb33ff"
   integrity sha512-wIM8bCrHeQHCUyDqJYXyvG8P98YeERaOB1NeOvcjnjlM32pn21S13j6tZqhiWX+nkpU3EvhtE/nuO1ItCpZ+HQ==
 
-"@types/es6-promisify@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@types/es6-promisify/-/es6-promisify-6.0.0.tgz#a554e8c9c28466720a96b20c9f6b139249b7d375"
-  integrity sha512-w3eB2FfE60gHeUTWT65G/FsTlqOAl8qZeyDGxAniF4oS7T6acQ7uvtGKQlCIQNOGh6r21A/3mBASNzy8Tbx+hg==
-
 "@types/node@^13.9.1":
   version "13.9.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.9.1.tgz#96f606f8cd67fb018847d9b61e93997dabdefc72"
@@ -69,11 +64,6 @@ diff@^4.0.1:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/diff/-/diff-4.0.2.tgz#60f3aecb89d5fae520c11aa19efc2bb982aade7d"
   integrity sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
-
-es6-promisify@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/es6-promisify/-/es6-promisify-6.1.0.tgz#32e3e7e796f924a6723f09ded24e71100ea57472"
-  integrity sha512-jCsk2fpfEFusVv1MDkF4Uf0hAzIKNDMgR6LyOIw6a3jwkN1sCgWzuwgnsHY9YSQ8n8P31HoncvE0LC44cpWTrw==
 
 fast-glob@^3.2.2:
   version "3.2.2"

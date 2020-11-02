@@ -38,15 +38,7 @@ export const writeIndex = async (indexPath: string, files?: string[]) => {
 };
 
 const prettierFormat = async (content: string): Promise<string> => {
-  const prettierConfigPath = path.join(ROOT_FOLDER, '.prettierrc.json');
-  const prettierConfig = await fs
-    .access(prettierConfigPath)
-    .then(() => fs.readFile(prettierConfigPath, 'utf8'))
-    .catch(() => undefined);
-
-  const options = prettierConfig
-    ? await prettier.resolveConfig(await prettierConfig)
-    : {};
+  const options = (await prettier.resolveConfig(ROOT_FOLDER)) || {};
   return prettier.format(content, { ...options, parser: 'babel' });
 };
 
