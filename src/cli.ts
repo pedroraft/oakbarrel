@@ -1,9 +1,11 @@
 import async from 'async';
 import nsfw, { ActionType } from 'nsfw';
 import path from 'path';
-import { CONCURRENCY, config, setupConfig } from './config';
+import { CONCURRENCY, config, ROOT_FOLDER, setupConfig } from './config';
 import { buildIndexTree } from './finder';
-import { writeIndex } from './write';
+import { prettierFormat, writeIndex } from './write';
+import syncFs, { promises as fs } from 'fs';
+import Hjson from 'hjson';
 
 export const run = async () => {
   await setupConfig();
@@ -66,6 +68,7 @@ const handleFileChange = async (events: any[]) => {
 
 const buildIndexes = (folders: string[]) => {
   const indexes = buildIndexTree(folders);
+  buildImportPaths(indexes);
   async.eachOfLimit(
     indexes,
     CONCURRENCY,
@@ -73,5 +76,28 @@ const buildIndexes = (folders: string[]) => {
       writeIndex(key.toString(), value).then(() => callback());
     },
     e => (e ? console.log(e) : undefined),
+  );
+};
+
+// todo: this doesn't work with monorepos
+const buildImportPaths = async (indexes: { [path: string]: string[] }) => {
+  const indexesRelatives = Object.keys(indexes).reduce((acc, x) => {
+    return {
+      ...acc,
+      [`@${path.relative(ROOT_FOLDER, x).split(path.sep)[1]}`]: [
+        `.${path.sep}${path.dirname(path.relative(ROOT_FOLDER, x))}`,
+      ],
+    };
+  }, {});
+  const tsconfigPath = path.join(ROOT_FOLDER, 'tsconfig.json');
+  const file = syncFs.readFileSync(tsconfigPath, { encoding: 'utf8' });
+  const tsconfig = Hjson.rt.parse(file);
+  tsconfig.compilerOptions.paths = indexesRelatives;
+  fs.writeFile(
+    tsconfigPath,
+    Hjson.rt.stringify(tsconfig, {
+      quotes: 'all',
+      separator: true,
+    }),
   );
 };

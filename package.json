@@ -21,6 +21,7 @@
   "dependencies": {
     "async": "^3.2.0",
     "fast-glob": "^3.2.2",
+    "hjson": "^3.2.1",
     "nsfw": "^1.2.7",
     "prettier": "^1.19.1"
   },

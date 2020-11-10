@@ -2,6 +2,13 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const async_1 = __importDefault(require("async"));
 const nsfw_1 = __importDefault(require("nsfw"));
@@ -9,6 +16,8 @@ const path_1 = __importDefault(require("path"));
 const config_1 = require("./config");
 const finder_1 = require("./finder");
 const write_1 = require("./write");
+const fs_1 = __importStar(require("fs"));
+const hjson_1 = __importDefault(require("hjson"));
 exports.run = async () => {
     await config_1.setupConfig();
     console.log(`reading ${config_1.config.folders.join(', ')} with ${config_1.CONCURRENCY} threads`);
@@ -51,7 +60,23 @@ const handleFileChange = async (events) => {
 };
 const buildIndexes = (folders) => {
     const indexes = finder_1.buildIndexTree(folders);
+    buildImportPaths(indexes);
     async_1.default.eachOfLimit(indexes, config_1.CONCURRENCY, (value, key, callback) => {
         write_1.writeIndex(key.toString(), value).then(() => callback());
     }, e => (e ? console.log(e) : undefined));
+};
+const buildImportPaths = async (indexes) => {
+    const indexesRelatives = Object.keys(indexes).reduce((acc, x) => {
+        return Object.assign(Object.assign({}, acc), { [`@${path_1.default.relative(config_1.ROOT_FOLDER, x).split(path_1.default.sep)[1]}`]: [
+                `.${path_1.default.sep}${path_1.default.dirname(path_1.default.relative(config_1.ROOT_FOLDER, x))}`,
+            ] });
+    }, {});
+    const tsconfigPath = path_1.default.join(config_1.ROOT_FOLDER, 'tsconfig.json');
+    const file = fs_1.default.readFileSync(tsconfigPath, { encoding: 'utf8' });
+    const tsconfig = hjson_1.default.rt.parse(file);
+    tsconfig.compilerOptions.paths = indexesRelatives;
+    fs_1.promises.writeFile(tsconfigPath, hjson_1.default.rt.stringify(tsconfig, {
+        quotes: 'all',
+        separator: true,
+    }));
 };

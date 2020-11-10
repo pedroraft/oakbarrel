@@ -37,7 +37,7 @@ export const writeIndex = async (indexPath: string, files?: string[]) => {
   return fs.writeFile(indexPath, await prettierFormat(content));
 };
 
-const prettierFormat = async (content: string): Promise<string> => {
+export const prettierFormat = async (content: string): Promise<string> => {
   const options = (await prettier.resolveConfig(ROOT_FOLDER)) || {};
   return prettier.format(content, { ...options, parser: 'babel' });
 };

@@ -41,17 +41,10 @@ exports.writeIndex = async (indexPath, files) => {
         defaultExports,
         fowardExports,
     ].join('\n');
-    return fs_1.promises.writeFile(indexPath, await prettierFormat(content));
+    return fs_1.promises.writeFile(indexPath, await exports.prettierFormat(content));
 };
-const prettierFormat = async (content) => {
-    const prettierConfigPath = path_1.default.join(config_1.ROOT_FOLDER, '.prettierrc.json');
-    const prettierConfig = await fs_1.promises
-        .access(prettierConfigPath)
-        .then(() => fs_1.promises.readFile(prettierConfigPath, 'utf8'))
-        .catch(() => undefined);
-    const options = prettierConfig
-        ? await prettier_1.default.resolveConfig(await prettierConfig)
-        : {};
+exports.prettierFormat = async (content) => {
+    const options = (await prettier_1.default.resolveConfig(config_1.ROOT_FOLDER)) || {};
     return prettier_1.default.format(content, Object.assign(Object.assign({}, options), { parser: 'babel' }));
 };
 const getIndexExportLine = (indexDir, filePath) => `export * from './${getRelative(indexDir, filePath)}';`;
