@@ -1,7 +1,8 @@
 import async from 'async';
+import micromatch from 'micromatch';
 import nsfw, { ActionType } from 'nsfw';
 import path from 'path';
-import { CONCURRENCY, config, setupConfig } from './config';
+import { CONCURRENCY, config, INDEX_GLOB, setupConfig } from './config';
 import { buildIndexTree } from './finder';
 import { writeIndex } from './write';
 
@@ -25,26 +26,26 @@ export const run = async () => {
   );
 };
 
-const handleFileChange = async (events: any[]) => {
-  const safeEvents = events
-    .filter(
-      (e: any) =>
-        (e.file === 'index.ts' && e.action !== ActionType.MODIFIED) ||
-        e.file !== 'index.ts',
-    )
-    .filter(
-      (value: any, index, self) =>
-        self.findIndex((x: any) => x.directory === value.directory) === index,
-    );
+const handleFileChange = async (events: nsfw.ModifiedFileEvent[]) => {
+  const safeEvents = events.filter(
+    (e, index, self) =>
+      ((micromatch.isMatch(e.file, INDEX_GLOB) &&
+        e.action !== ActionType.MODIFIED) ||
+        !micromatch.isMatch(e.file, INDEX_GLOB)) &&
+      self.findIndex(x => x.directory === e.directory) === index,
+  );
   if (safeEvents.length === 0) return;
   console.log('EVENT DETECTED');
   const folders = config.folders.map(f => path.resolve(f));
-  if (safeEvents.some((e: any) => e.file === 'index.ts')) buildIndexes(folders);
+  if (
+    safeEvents.some(e => micromatch.isMatch(path.basename(e.file), INDEX_GLOB))
+  )
+    buildIndexes(folders);
   else {
     const newIndex = buildIndexTree(folders);
     const alteredIndexes: string[] = [];
     safeEvents
-      .map((e: any) => path.join(e.directory, e.file))
+      .map(e => path.join(e.directory, e.file))
       .forEach(f =>
         Object.keys(newIndex).forEach(key => {
           if (newIndex[key].includes(f)) alteredIndexes.push(key);
@@ -64,14 +65,12 @@ const handleFileChange = async (events: any[]) => {
   }
 };
 
-const buildIndexes = (folders: string[]) => {
-  const indexes = buildIndexTree(folders);
+const buildIndexes = (folders: string[]) =>
   async.eachOfLimit(
-    indexes,
+    buildIndexTree(folders),
     CONCURRENCY,
     (value, key, callback) => {
       writeIndex(key.toString(), value).then(() => callback());
     },
     e => (e ? console.log(e) : undefined),
   );
-};
