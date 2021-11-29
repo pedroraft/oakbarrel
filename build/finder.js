@@ -21,14 +21,13 @@ exports.buildIndexTree = (folders) => {
     })
         .reverse()
         .reduce((acc, indexFile) => {
+        const filesInOtherIndexes = Object.keys(acc).reduce((indexTree, key) => {
+            return [...indexTree, ...acc[key]];
+        }, []);
         return Object.assign(Object.assign({}, acc), { [indexFile]: files
                 .filter((f) => f !== indexFile &&
                 f.startsWith(path_1.default.dirname(indexFile)) &&
-                !Object.keys(acc)
-                    .reduce((indexTree, key) => {
-                    return [indexTree, ...acc[key]];
-                }, [])
-                    .find((x) => x === f))
+                !filesInOtherIndexes.find((x) => x === f))
                 .sort() });
     }, {}));
 };

@@ -25,6 +25,12 @@ export const buildIndexTree = (folders: string[]) => {
       .reverse()
       // add the children files to the index object using the path as key
       .reduce((acc, indexFile) => {
+        const filesInOtherIndexes = Object.keys(acc).reduce(
+          (indexTree, key) => {
+            return [...indexTree, ...acc[key]];
+          },
+          [] as string[],
+        );
         return {
           ...acc,
           [indexFile]: files
@@ -35,11 +41,7 @@ export const buildIndexTree = (folders: string[]) => {
                 // in the same path
                 f.startsWith(path.dirname(indexFile)) &&
                 // isn't in other index
-                !Object.keys(acc)
-                  .reduce((indexTree, key) => {
-                    return [indexTree, ...acc[key]];
-                  }, [])
-                  .find((x) => x === f),
+                !filesInOtherIndexes.find((x) => x === f),
             )
             // alphabetically order
             .sort(),
