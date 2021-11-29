@@ -31,6 +31,7 @@ yarn add -D @pedroraft/oakbarrel
 - ignore: glob pattern of files to ignore, useful for ignore tests.
 
 example config:
+
 ```json
 {
   "folders": ["./libs/ui-hybrid/src", "./libs/core/src"],
@@ -42,6 +43,15 @@ example config:
 
 ```bash
 yarn oakbarrel
+```
+
+### Ignoring an index file
+
+Add this comment on top of an index file that you want to update manually
+
+```typescript
+// oakbarrel-ignore
+export [...]
 ```
 
 ## Why?
