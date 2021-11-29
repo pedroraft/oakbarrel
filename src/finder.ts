@@ -2,21 +2,22 @@ import FastGlob from 'fast-glob';
 import syncFs from 'fs';
 import micromatch from 'micromatch';
 import path from 'path';
-import { config, FILES_EXTENSIONS, INDEX_GLOB } from './config';
+import { config, FILES_EXTENSIONS } from './config';
 
 export const buildIndexTree = (folders: string[]) => {
   const files = getFiles(folders)
     // fast glob ignore is bugged
-    .filter(f => !config.ignore || !micromatch.isMatch(f, config.ignore));
-  console.log(files.join('\n'));
+    .filter((f) => !config.ignore || !micromatch.isMatch(f, config.ignore));
 
   // cycle the indexes
   return (
     files
       // only index.ts files
-      .filter(file => micromatch.isMatch(path.basename(file), INDEX_GLOB))
+      .filter((file) => {
+        return path.basename(file).includes('index.');
+      })
       // filter files marked with ignore
-      .filter(indexPath => {
+      .filter((indexPath) => {
         const file = syncFs.readFileSync(indexPath, { encoding: 'utf8' });
         return !/oakbarrel-ignore/g.test(file);
       })
@@ -28,7 +29,7 @@ export const buildIndexTree = (folders: string[]) => {
           ...acc,
           [indexFile]: files
             .filter(
-              f =>
+              (f) =>
                 // removing it self
                 f !== indexFile &&
                 // in the same path
@@ -38,7 +39,7 @@ export const buildIndexTree = (folders: string[]) => {
                   .reduce((indexTree, key) => {
                     return [indexTree, ...acc[key]];
                   }, [])
-                  .find(x => x === f),
+                  .find((x) => x === f),
             )
             // alphabetically order
             .sort(),
@@ -50,7 +51,7 @@ export const buildIndexTree = (folders: string[]) => {
 const getFiles = (folders: string[]) =>
   FastGlob.sync(
     folders.map(
-      folder => path.join(folder, `**/*.{${FILES_EXTENSIONS.join(',')}}`),
+      (folder) => path.join(folder, `**/*.{${FILES_EXTENSIONS.join(',')}}`),
       {
         ignore: ['**/node_modules/*', ...(config.ignore || [])],
       },

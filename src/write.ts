@@ -6,7 +6,7 @@ import { ROOT_FOLDER, TEXT_ON_TOP } from './config';
 export const writeIndex = async (indexPath: string, files?: string[]) => {
   const content = [
     TEXT_ON_TOP,
-    files.map(f => getIndexExportLine(path.dirname(indexPath), f)).join('\n'),
+    files.map((f) => getIndexExportLine(path.dirname(indexPath), f)).join('\n'),
   ].join('\n');
 
   return fs.writeFile(indexPath, await prettierFormat(content));

@@ -10,7 +10,7 @@ const config_1 = require("./config");
 exports.writeIndex = async (indexPath, files) => {
     const content = [
         config_1.TEXT_ON_TOP,
-        files.map(f => getIndexExportLine(path_1.default.dirname(indexPath), f)).join('\n'),
+        files.map((f) => getIndexExportLine(path_1.default.dirname(indexPath), f)).join('\n'),
     ].join('\n');
     return fs_1.promises.writeFile(indexPath, await prettierFormat(content));
 };

@@ -6,7 +6,7 @@ var devMode = require('fs').existsSync(`${__dirname}/../src`);
 // or want to "force" running the compiled version with --compiled-build
 var wantsCompiled = process.argv.indexOf('--compiled-build') >= 0;
 
-console.log('starting oakbarrel...');
+// console.log('starting oakbarrel...');
 if (wantsCompiled || !devMode) {
   // console.log('oakbarrel: production');
   // this runs from the compiled javascript source
