@@ -27,10 +27,14 @@ yarn add -D oakbarrel
 
 ### Config file
 
+folders: list of relative paths to folders where the code is
+ignore: glob pattern of files to ignore, useful for ignore tests.
+
+example config:
 ```json
 {
   "folders": ["./libs/ui-hybrid/src", "./libs/core/src"],
-  "ignore": ["**/*.{spec,stories,native,ios,android}.{js,jsx,ts,tsx}"] // glob pattern of files to ignore
+  "ignore": ["**/*.{spec,stories,native,ios,android}.{js,jsx,ts,tsx}"]
 }
 ```
 
@@ -44,4 +48,4 @@ yarn oakbarrel
 
 Updating index barrels is boring and all other tools I found had major problems, either buggy or slow file watcher performance, none worked well with mono repository.
 
-This uses [nsfw](https://github.com/Axosoft/nsfw) file watcher with fast-glob, a much faster and low memory consuming than other tools.
+This uses [nsfw](https://github.com/Axosoft/nsfw) file watcher with [fast-glob](https://github.com/mrmlnc/fast-glob), this combo is much faster and low memory consuming than other tools.
