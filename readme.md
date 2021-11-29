@@ -27,8 +27,8 @@ yarn add -D @pedroraft/oakbarrel
 
 ### Config file
 
-folders: list of relative paths to folders where the code is
-ignore: glob pattern of files to ignore, useful for ignore tests.
+- folders: list of relative paths to folders where the code is
+- ignore: glob pattern of files to ignore, useful for ignore tests.
 
 example config:
 ```json
