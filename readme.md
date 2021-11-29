@@ -18,11 +18,11 @@ Create an index.ts any where in your project and run the cli, it will update the
 ### Install
 
 ```bash
-npm install --save-dev oakbarrel
+npm install --save-dev @pedroraft/oakbarrel
 
 # or
 
-yarn add -D oakbarrel
+yarn add -D @pedroraft/oakbarrel
 ```
 
 ### Config file
