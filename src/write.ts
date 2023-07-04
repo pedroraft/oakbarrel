@@ -1,50 +1,40 @@
-import FastGlob from "fast-glob";
-import fs from "fs";
-import micromatch from "micromatch";
+import { promises as fs } from "fs";
 import path from "path";
-import { config, FILES_EXTENSIONS } from "./config";
+import prettier from "prettier";
+import { ROOT_FOLDER, TEXT_ON_TOP } from "./config";
 
-export const buildIndexTree = () => {
-  const svgFiles = getFiles(config.foldersSvg, ["svg"]);
-  const otherFiles = getFiles(
-    config.folders,
-    FILES_EXTENSIONS.filter(extension => extension !== "svg")
-  );
-  const files = [...svgFiles, ...otherFiles].filter(
-    f => !config.ignore || !micromatch.isMatch(f, config.ignore)
-  );
+export const writeIndex = async (indexPath: string, files?: string[]) => {
+  const content = [
+    TEXT_ON_TOP,
+    files
+      .map(f => {
+        if (f.endsWith(".svg"))
+          return getIndexExportSvg(path.dirname(indexPath), f);
+        return getIndexExportLine(path.dirname(indexPath), f);
+      })
+      .join("\n")
+  ].join("\n");
 
-  return files
-    .filter(file => path.basename(file).includes("index."))
-    .filter(indexPath => {
-      const file = fs.readFileSync(indexPath, { encoding: "utf8" });
-      return !/oakbarrel-ignore/g.test(file);
-    })
-    .reverse()
-    .reduce((acc, indexFile) => {
-      const filesInOtherIndexes = Object.keys(acc).reduce(
-        (indexTree, key) => [...indexTree, ...acc[key]],
-        [] as string[]
-      );
-
-      return {
-        ...acc,
-        [indexFile]: files
-          .filter(
-            f =>
-              f !== indexFile &&
-              f.startsWith(path.dirname(indexFile)) &&
-              !filesInOtherIndexes.find(x => x === f)
-          )
-          .sort()
-      };
-    }, {} as Record<string, string[]>);
+  return fs.writeFile(indexPath, await prettierFormat(content));
 };
 
-const getFiles = (folders: string[], extensions: string[]) =>
-  FastGlob.sync(
-    folders.map(folder => path.join(folder, `**/*.{${extensions.join(",")}}`)),
-    {
-      ignore: ["**/node_modules/*", ...(config.ignore || [])]
-    }
-  );
+const prettierFormat = async (content: string): Promise<string> => {
+  const options = (await prettier.resolveConfig(ROOT_FOLDER)) || {};
+  return prettier.format(content, { ...options, parser: "babel" });
+};
+
+const getIndexExportLine = (indexDir: string, filePath: string) =>
+  `export * from './${getRelative(indexDir, filePath)}';`;
+
+const getIndexExportSvg = (indexDir: string, filePath: string) => {
+  const filePathArray = filePath.split("/");
+  const fileName = filePathArray[filePathArray.length - 1].split(".")[0];
+  const camelCase = fileName.replace(/-([a-z0-9])/g, g => g[1].toUpperCase());
+  return `export { default as ${camelCase} } from './${getRelative(
+    indexDir,
+    filePath
+  )}.svg';`;
+};
+
+const getRelative = (indexDir: string, filePath: string) =>
+  path.relative(indexDir, filePath).replace(/\.[0-9a-z]+$/i, "");
