@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import os from 'os';
+import { promises as fs } from "fs";
+import os from "os";
 
 export interface Config {
   folders: string[]; // relative path list
@@ -7,13 +7,13 @@ export interface Config {
 }
 
 export let config: Config = {
-  folders: ['./src'],
+  folders: ["./src"]
 };
 
 export const setupConfig = async () => {
-  const file = await fs.readFile('./.oakbarrel.json', { encoding: 'utf8' });
+  const file = await fs.readFile("./.oakbarrel.json", { encoding: "utf8" });
   if (!file) {
-    console.log('.oakbarrel.json not found');
+    console.log(".oakbarrel.json not found");
     return;
   }
   config = JSON.parse(file);
@@ -24,4 +24,4 @@ export const CONCURRENCY = os.cpus().length;
 
 export const TEXT_ON_TOP = `// This is a auto-generated file, do not edit it`;
 
-export const FILES_EXTENSIONS = ['js', 'jsx', 'ts', 'tsx'];
+export const FILES_EXTENSIONS = ["js", "jsx", "ts", "tsx", "svg"];
