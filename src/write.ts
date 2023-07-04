@@ -29,7 +29,7 @@ const getIndexExportLine = (indexDir: string, filePath: string) =>
 const getIndexExportSvg = (indexDir: string, filePath: string) => {
   const filePathArray = filePath.split("/");
   const fileName = filePathArray[filePathArray.length - 1].split(".")[0];
-  const camelCase = fileName.replace(/-([a-z])/g, g => g[1].toUpperCase());
+  const camelCase = fileName.replace(/-([a-z0-9])/g, g => g[1].toUpperCase());
   return `export * as ${camelCase} from './${getRelative(
     indexDir,
     filePath
