@@ -33,7 +33,7 @@ const getIndexExportSvg = (indexDir: string, filePath: string) => {
   return `export * as ${camelCase} from './${getRelative(
     indexDir,
     filePath
-  )}';`;
+  )}.svg';`;
 };
 
 const getRelative = (indexDir: string, filePath: string) =>
