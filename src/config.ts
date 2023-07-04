@@ -2,12 +2,14 @@ import { promises as fs } from "fs";
 import os from "os";
 
 export interface Config {
+  foldersSvg: string[]; // relative path list
   folders: string[]; // relative path list
   ignore?: string[]; // glob
 }
 
 export let config: Config = {
-  folders: ["./src"]
+  folders: ["./src"],
+  foldersSvg: ["./src"]
 };
 
 export const setupConfig = async () => {
